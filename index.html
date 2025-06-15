@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スライド式メモアプリ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div id="tab-header">
+      <div class="tab active" data-tab="0">タブ1</div>
+    </div>
+    <div class="tab-controls">
+      <button id="add-tab">＋</button>
+      <button id="open-settings">⚙️</button>
+      <button id="open-history">📝</button>
+    </div>
+  </header>
+
+  <main id="tab-content-container">
+    <div class="tab-content active" data-tab="0">
+      <!-- 入力エリアがここに追加される -->
+    </div>
+  </main>
+
+  <button id="add-memo" title="メモ追加">＋</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
