@@ -65,3 +65,57 @@ header {
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
+/* 履歴モーダル */
+#history-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.modal-content {
+  background: white;
+  padding: 1em;
+  border-radius: 10px;
+  width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  position: relative;
+}
+
+#close-history {
+  position: absolute;
+  top: 10px; right: 10px;
+  border: none;
+  background: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.history-month {
+  margin: 1em 0;
+}
+
+.history-month h3 {
+  background: #ddd;
+  padding: 0.5em;
+  border-radius: 6px;
+}
+
+.history-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+.history-item {
+  background: #f0f0f0;
+  flex: 1 1 30%;
+  padding: 0.5em;
+  border-radius: 8px;
+  text-align: center;
+}
