@@ -1,214 +1,240 @@
-let tabCount = 1;
+document.addEventListener("DOMContentLoaded", () => {
+  const tabHeader = document.getElementById("tab-header");
+  const tabContentContainer = document.getElementById("tab-content-container");
+  const addTabBtn = document.getElementById("add-tab");
+  const addMemoBtn = document.getElementById("add-memo");
+  const historyModal = document.getElementById("history-modal");
+  const closeHistoryBtn = document.getElementById("close-history");
+  const openHistoryBtn = document.getElementById("open-history");
+  const colorPicker = document.getElementById("bg-color-picker");
 
-document.getElementById('add-tab').addEventListener('click', () => {
-  const newTabId = tabCount++;
-  const tab = document.createElement('div');
-  tab.className = 'tab';
-  tab.dataset.tab = newTabId;
-  tab.textContent = `タブ${newTabId}`;
-  document.getElementById('tab-header').appendChild(tab);
+  let tabs = JSON.parse(localStorage.getItem("tabs")) || [];
+  let activeTab = null;
 
-  const content = document.createElement('div');
-  content.className = 'tab-content';
-  content.dataset.tab = newTabId;
-  document.getElementById('tab-content-container').appendChild(content);
-
-  switchTab(newTabId);
-});
-
-document.getElementById('tab-header').addEventListener('click', (e) => {
-  if (e.target.classList.contains('tab')) {
-    const tabId = e.target.dataset.tab;
-    switchTab(tabId);
+  // ---- 初期化 ----
+  function init() {
+    if (tabs.length === 0) {
+      tabs.push({ name: "タブ1", color: "#2196f3" });
+      saveTabs();
+    }
+    renderTabs();
+    switchTab(0);
   }
-});
 
-function switchTab(tabId) {
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.tab === tabId);
-  });
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.toggle('active', content.dataset.tab === tabId);
-  });
-}
+  // ---- タブを保存 ----
+  function saveTabs() {
+    localStorage.setItem("tabs", JSON.stringify(tabs));
+  }
 
-document.getElementById('add-memo').addEventListener('click', () => {
-  const activeTab = document.querySelector('.tab-content.active');
-  if (!activeTab) return;
+  // ---- タブ描画 ----
+  function renderTabs() {
+    tabHeader.innerHTML = "";
+    tabs.forEach((tab, index) => {
+      const tabBtn = document.createElement("div");
+      tabBtn.className = "tab";
+      tabBtn.textContent = tab.name;
+      tabBtn.style.background = tab.color;
+      tabBtn.dataset.index = index;
+      if (index === activeTab) tabBtn.classList.add("active");
 
-  const memo = document.createElement('div');
-  memo.className = 'memo-item';
+      // 削除ボタン
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "🗑️";
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (confirm("このタブを削除しますか？")) {
+          tabs.splice(index, 1);
+          saveTabs();
+          renderTabs();
+          switchTab(0);
+        }
+      };
+      tabBtn.appendChild(delBtn);
 
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'メモを入力';
+      // 移動ボタン（↑↓）
+      if (index > 0) {
+        const upBtn = document.createElement("button");
+        upBtn.textContent = "⬆️";
+        upBtn.onclick = (e) => {
+          e.stopPropagation();
+          [tabs[index], tabs[index - 1]] = [tabs[index - 1], tabs[index]];
+          saveTabs();
+          renderTabs();
+          switchTab(index - 1);
+        };
+        tabBtn.appendChild(upBtn);
+      }
+      if (index < tabs.length - 1) {
+        const downBtn = document.createElement("button");
+        downBtn.textContent = "⬇️";
+        downBtn.onclick = (e) => {
+          e.stopPropagation();
+          [tabs[index], tabs[index + 1]] = [tabs[index + 1], tabs[index]];
+          saveTabs();
+          renderTabs();
+          switchTab(index + 1);
+        };
+        tabBtn.appendChild(downBtn);
+      }
 
-  const check = document.createElement('button');
-  check.textContent = '✔';
-  check.onclick = () => {
-    // 履歴機能が後で追加される
-    memo.remove();
+      tabBtn.onclick = () => {
+        switchTab(index);
+      };
+      tabHeader.appendChild(tabBtn);
+    });
+  }
+
+  // ---- タブ切り替え ----
+  function switchTab(index) {
+    activeTab = index;
+    renderTabs();
+    renderTabContent();
+    updateColorPicker();
+  }
+
+  // ---- タブ背景色変更 ----
+  colorPicker.onchange = () => {
+    if (activeTab !== null) {
+      tabs[activeTab].color = colorPicker.value;
+      saveTabs();
+      renderTabs();
+      renderTabContent();
+    }
   };
 
-  memo.appendChild(input);
-  memo.appendChild(check);
-  activeTab.appendChild(memo);
-});
-// 履歴保存
-function saveToHistory(tabId, content) {
-  const now = new Date();
-  const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
-  const historyKey = `history-tab${tabId}`;
-
-  let history = JSON.parse(localStorage.getItem(historyKey)) || {};
-
-  if (!history[monthKey]) {
-    history[monthKey] = [];
-  }
-
-  history[monthKey].push(content);
-  localStorage.setItem(historyKey, JSON.stringify(history));
-}
-
-// チェックボタンの処理に履歴保存を追加
-check.onclick = () => {
-  const content = input.value.trim();
-  if (content !== '') {
-    const tabId = activeTab.dataset.tab;
-    saveToHistory(tabId, content);
-  }
-  memo.remove();
-};
-
-// 履歴表示
-document.getElementById('open-history').addEventListener('click', () => {
-  const activeTabId = document.querySelector('.tab.active').dataset.tab;
-  const historyKey = `history-tab${activeTabId}`;
-  const history = JSON.parse(localStorage.getItem(historyKey)) || {};
-
-  const historyContainer = document.getElementById('history-content');
-  historyContainer.innerHTML = '';
-
-  Object.keys(history).sort().reverse().forEach(month => {
-    const group = document.createElement('div');
-    group.className = 'history-month';
-
-    const title = document.createElement('h3');
-    title.textContent = `${month}（${history[month].length}件）`;
-    group.appendChild(title);
-
-    const grid = document.createElement('div');
-    grid.className = 'history-grid';
-
-    history[month].forEach(text => {
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      item.textContent = `📝 ${text}`;
-      grid.appendChild(item);
-    });
-
-    group.appendChild(grid);
-    historyContainer.appendChild(group);
-  });
-
-  document.getElementById('history-modal').classList.remove('hidden');
-});
-
-// 履歴モーダルを閉じる
-document.getElementById('close-history').addEventListener('click', () => {
-  document.getElementById('history-modal').classList.add('hidden');
-});
-function createTab(tabId) {
-  const tab = document.createElement('div');
-  tab.className = 'tab';
-  tab.dataset.tab = tabId;
-  tab.draggable = true;
-  tab.innerHTML = `
-    タブ${tabId}
-    <span class="tab-actions">
-      <button class="delete-tab">🗑️</button>
-      <button class="move-tab">≡</button>
-    </span>
-  `;
-
-  addDragEvents(tab); // ドラッグ処理追加
-
-  return tab;
-}
-document.getElementById('add-tab').addEventListener('click', () => {
-  const newTabId = tabCount++;
-  const tab = createTab(newTabId);
-  document.getElementById('tab-header').appendChild(tab);
-
-  const content = document.createElement('div');
-  content.className = 'tab-content';
-  content.dataset.tab = newTabId;
-  document.getElementById('tab-content-container').appendChild(content);
-
-  switchTab(newTabId);
-});
-document.getElementById('tab-header').addEventListener('click', (e) => {
-  if (e.target.classList.contains('delete-tab')) {
-    const tab = e.target.closest('.tab');
-    const tabId = tab.dataset.tab;
-
-    // タブと中身を削除
-    tab.remove();
-    const content = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
-    if (content) content.remove();
-
-    // アクティブタブ切り替え
-    const firstTab = document.querySelector('.tab');
-    if (firstTab) switchTab(firstTab.dataset.tab);
-  }
-
-  // 通常のタブ切り替え
-  if (e.target.classList.contains('tab')) {
-    switchTab(e.target.dataset.tab);
-  }
-});
-function addDragEvents(tab) {
-  tab.addEventListener('dragstart', () => {
-    tab.classList.add('dragging');
-  });
-
-  tab.addEventListener('dragend', () => {
-    tab.classList.remove('dragging');
-  });
-
-  tab.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const dragging = document.querySelector('.tab.dragging');
-    const header = document.getElementById('tab-header');
-    const tabs = Array.from(header.children);
-    const after = tabs.find(t => {
-      const box = t.getBoundingClientRect();
-      return e.clientX < box.left + box.width / 2;
-    });
-    if (after) {
-      header.insertBefore(dragging, after);
-    } else {
-      header.appendChild(dragging);
+  function updateColorPicker() {
+    if (tabs[activeTab]) {
+      colorPicker.value = tabs[activeTab].color;
     }
-  });
-}
-document.getElementById('bg-color-picker').addEventListener('change', (e) => {
-  const color = e.target.value;
-  const tabId = document.querySelector('.tab.active').dataset.tab;
-  const tab = document.querySelector(`.tab[data-tab="${tabId}"]`);
-  const content = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
+  }
 
-  // タブとリストに背景色適用（タブは濃く、リストは薄め）
-  tab.style.backgroundColor = color;
-  content.style.backgroundColor = lighten(color, 0.4);
+  // ---- タブコンテンツ描画 ----
+  function renderTabContent() {
+    const key = `memos-tab${activeTab}`;
+    const memos = JSON.parse(localStorage.getItem(key)) || [];
+    tabContentContainer.innerHTML = "";
+
+    const content = document.createElement("div");
+    content.className = "tab-content";
+    content.style.background = lightenColor(tabs[activeTab].color, 40);
+
+    memos.forEach((memo, idx) => {
+      const entry = document.createElement("div");
+      entry.className = "memo-entry";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = memo;
+      input.oninput = () => {
+        memos[idx] = input.value;
+        localStorage.setItem(key, JSON.stringify(memos));
+      };
+
+      const checkBtn = document.createElement("button");
+      checkBtn.textContent = "✅";
+      checkBtn.onclick = () => {
+        memos.splice(idx, 1);
+        localStorage.setItem(key, JSON.stringify(memos));
+        saveToHistory(memo);
+        renderTabContent();
+      };
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "🗑️";
+      delBtn.onclick = () => {
+        memos.splice(idx, 1);
+        localStorage.setItem(key, JSON.stringify(memos));
+        renderTabContent();
+      };
+
+      entry.appendChild(input);
+      entry.appendChild(checkBtn);
+      entry.appendChild(delBtn);
+      content.appendChild(entry);
+    });
+
+    tabContentContainer.appendChild(content);
+  }
+
+  // ---- メモ追加 ----
+  addMemoBtn.onclick = () => {
+    const key = `memos-tab${activeTab}`;
+    const memos = JSON.parse(localStorage.getItem(key)) || [];
+    memos.push("");
+    localStorage.setItem(key, JSON.stringify(memos));
+    renderTabContent();
+  };
+
+  // ---- 履歴保存 ----
+  function saveToHistory(text) {
+    const key = `history-tab${activeTab}`;
+    const history = JSON.parse(localStorage.getItem(key)) || {};
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (!history[ym]) history[ym] = [];
+    history[ym].push(text);
+    localStorage.setItem(key, JSON.stringify(history));
+  }
+
+  // ---- 履歴表示 ----
+  openHistoryBtn.onclick = () => {
+    const container = document.getElementById("history-content");
+    const key = `history-tab${activeTab}`;
+    const history = JSON.parse(localStorage.getItem(key)) || {};
+    container.innerHTML = "";
+
+    Object.keys(history)
+      .sort()
+      .reverse()
+      .forEach((month) => {
+        const group = document.createElement("div");
+        group.className = "history-month";
+
+        const title = document.createElement("h3");
+        title.textContent = `${month}（${history[month].length}件）`;
+        group.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "history-grid";
+
+        history[month].forEach((text) => {
+          const item = document.createElement("div");
+          item.className = "history-item";
+          item.textContent = `📝 ${text}`;
+          grid.appendChild(item);
+        });
+
+        group.appendChild(grid);
+        container.appendChild(group);
+      });
+
+    historyModal.classList.remove("hidden");
+  };
+
+  closeHistoryBtn.onclick = () => {
+    historyModal.classList.add("hidden");
+  };
+
+  // ---- タブ追加 ----
+  addTabBtn.onclick = () => {
+    const name = prompt("新しいタブ名を入力してください：");
+    if (name) {
+      tabs.push({ name, color: "#2196f3" });
+      saveTabs();
+      renderTabs();
+      switchTab(tabs.length - 1);
+    }
+  };
+
+  // ---- 色を薄くするユーティリティ関数 ----
+  function lightenColor(hex, percent) {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00ff) + amt);
+    const B = Math.min(255, (num & 0x0000ff) + amt);
+    return `rgb(${R},${G},${B})`;
+  }
+
+  init();
 });
-
-// パステルカラーを少し明るくする
-function lighten(color, factor) {
-  const hex = color.replace('#', '');
-  const r = Math.min(255, Math.floor(parseInt(hex.substr(0, 2), 16) + 255 * factor));
-  const g = Math.min(255, Math.floor(parseInt(hex.substr(2, 2), 16) + 255 * factor));
-  const b = Math.min(255, Math.floor(parseInt(hex.substr(4, 2), 16) + 255 * factor));
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
