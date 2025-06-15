@@ -1,63 +1,42 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>スライド式メモアプリ</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>メモアプリ</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <div id="tab-header">
-      <div class="tab active" data-tab="0">タブ1</div>
+    <div id="tab-header"></div>
+    <div class="header-buttons">
+      <button id="add-tab">＋タブ</button>
+      <button id="open-history">📝履歴</button>
     </div>
-    <div class="tab-controls">
-      <button id="add-tab">＋</button>
-      <button id="open-settings">⚙️</button>
-      <button id="open-history">📝</button>
+    <div id="color-picker-area">
+      <label>背景色:</label>
+      <select id="bg-color-picker">
+        <option value="#FFCDD2">ローズ</option>
+        <option value="#C8E6C9">ミント</option>
+        <option value="#BBDEFB">ブルー</option>
+        <option value="#FFF9C4">イエロー</option>
+        <option value="#D1C4E9">ラベンダー</option>
+      </select>
     </div>
   </header>
 
-  <main id="tab-content-container">
-    <div class="tab-content active" data-tab="0">
-      <!-- 入力エリアがここに追加される -->
-    </div>
-  </main>
+  <main id="tab-content-container"></main>
 
-  <button id="add-memo" title="メモ追加">＋</button>
+  <button id="add-memo">＋</button>
+
+  <div id="history-modal" class="hidden">
+    <div class="modal-content">
+      <button id="close-history">✖</button>
+      <h2>履歴一覧</h2>
+      <div id="history-content"></div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
-<div id="history-modal" class="hidden">
-  <div class="modal-content">
-    <button id="close-history">✖</button>
-    <h2>履歴一覧</h2>
-    <div id="history-content"></div>
-  </div>
-</div>
-
-<!-- タブの表示エリアを更新 -->
-<div id="tab-header">
-  <!-- タブ構成 -->
-  <div class="tab active" data-tab="0" draggable="true">
-    タブ1
-    <span class="tab-actions">
-      <button class="delete-tab">🗑️</button>
-      <button class="move-tab">≡</button>
-    </span>
-  </div>
-</div>
-<!-- タブ設定UI（例） -->
-<div id="color-picker-area">
-  <label>背景色:</label>
-  <select id="bg-color-picker">
-    <option value="#FFCDD2">ローズ</option>
-    <option value="#C8E6C9">ミント</option>
-    <option value="#BBDEFB">ブルー</option>
-    <option value="#FFF9C4">イエロー</option>
-    <option value="#D1C4E9">ラベンダー</option>
-  </select>
-</div>
-
-
