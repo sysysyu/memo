@@ -119,3 +119,33 @@ header {
   border-radius: 8px;
   text-align: center;
 }
+.tab {
+  background: #7cc6de;
+  padding: 0.5em 1em;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+.tab-actions button {
+  background: none;
+  border: none;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tab-content {
+  background: #e3f5fb;
+  padding: 1em;
+  border-radius: 10px;
+  min-height: 200px;
+}
+
